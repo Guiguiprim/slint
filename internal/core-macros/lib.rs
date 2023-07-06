@@ -8,6 +8,45 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 
+/// This derive macro is used with structures that are non_exhaustive
+/// and needs to be constructed from within rust generated code.
+/// It adds `construct_new(fields..)` that takes all fields in alphabetical order.
+#[proc_macro_derive(ConstructNew)]
+pub fn construct_new(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as syn::DeriveInput);
+
+    let fields = match &input.data {
+        syn::Data::Struct(syn::DataStruct { fields: syn::Fields::Named(f), .. }) => f,
+        _ => {
+            return syn::Error::new(
+                input.ident.span(),
+                "Only `struct` with named field are supported",
+            )
+            .to_compile_error()
+            .into()
+        }
+    };
+
+    let fields: std::collections::BTreeMap<_, _> =
+        fields.named.iter().map(|f| (f.ident.as_ref().unwrap(), &f.ty)).collect();
+    let (names, types): (Vec<&syn::Ident>, Vec<&syn::Type>) = fields.iter().unzip();
+
+    let item_name = &input.ident;
+
+    quote! {
+        impl #item_name {
+            #[inline]
+            #[doc(hidden)]
+            pub fn construct_new(#(#names: #types,)*) -> Self {
+                Self {
+                    #(#names: #names,)*
+                }
+            }
+        }
+    }
+    .into()
+}
+
 /// This derive macro is used with structures in the run-time library that are meant
 /// to be exposed to the language. The structure is introspected for properties and fields
 /// marked with the `rtti_field` attribute and generates run-time type information for use

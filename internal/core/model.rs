@@ -20,6 +20,7 @@ use core::pin::Pin;
 use euclid::num::Zero;
 #[allow(unused)]
 use euclid::num::{Ceil, Floor};
+use i_slint_core_macros::ConstructNew;
 pub use model_peer::*;
 use once_cell::unsync::OnceCell;
 use pin_project::pin_project;
@@ -1205,7 +1206,7 @@ impl<C: RepeatedComponent + 'static> Repeater<C> {
 /// Represents an item in a StandardListView and a StandardTableView. This is the Rust/C++ type for
 /// the StandardListViewItem type in Slint files, when declaring for example a `property <[StandardListViewItem]> my-list-view-model;`.
 #[repr(C)]
-#[derive(Clone, Default, Debug, PartialEq)]
+#[derive(Clone, Default, Debug, PartialEq, ConstructNew)]
 #[non_exhaustive]
 pub struct StandardListViewItem {
     /// The text content of the item.
@@ -1226,7 +1227,7 @@ impl From<&str> for StandardListViewItem {
 
 /// Represent an TableColumn header
 #[repr(C)]
-#[derive(Clone, Default, Debug, PartialEq)]
+#[derive(Clone, Default, Debug, PartialEq, ConstructNew)]
 #[non_exhaustive]
 pub struct TableColumn {
     /// The title of the column header

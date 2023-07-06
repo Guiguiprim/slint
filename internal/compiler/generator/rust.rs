@@ -2083,7 +2083,7 @@ fn compile_expression(expr: &Expression, ctx: &EvaluationContext) -> TokenStream
                     {
                         quote!(#name_tokens{#(#keys: #elem as _,)*})
                     } else {
-                        quote!({ let mut the_struct = #name_tokens::default(); #(the_struct.#keys =  #elem as _;)* the_struct})
+                        quote!(#name_tokens::construct_new(#(#elem as _,)*))
                     }
                 } else {
                     let as_ = fields.values().map(|t| {

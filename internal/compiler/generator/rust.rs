@@ -2071,12 +2071,16 @@ fn compile_expression(expr: &Expression, ctx: &EvaluationContext) -> TokenStream
             }
         }
         Expression::Struct { ty, values } => {
-            if let Type::Struct { fields, name, .. } = ty {
+            if let Type::Struct { fields, name, node, .. } = ty {
                 let elem = fields.keys().map(|k| values.get(k).map(|e| compile_expression(e, ctx)));
                 if let Some(name) = name {
                     let name_tokens: TokenStream = struct_name_to_tokens(name.as_str());
                     let keys = fields.keys().map(|k| ident(k));
-                    if name.contains("LayoutData") {
+                    let non_exhaustive_types = ["TableColumn", "StandardListViewItem"];
+                    if name.contains("LayoutData")
+                        || node.is_some()
+                        || !non_exhaustive_types.contains(&name.as_str())
+                    {
                         quote!(#name_tokens{#(#keys: #elem as _,)*})
                     } else {
                         quote!({ let mut the_struct = #name_tokens::default(); #(the_struct.#keys =  #elem as _;)* the_struct})
